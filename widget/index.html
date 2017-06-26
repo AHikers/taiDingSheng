@@ -1,0 +1,259 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <title>Hello APP</title>
+    <link rel="stylesheet" type="text/css" href="./css/api.css" />
+    <link rel="stylesheet" type="text/css" href="./css/common.css" />
+    <style>
+
+    </style>
+</head>
+<body ontouchstart="">
+    <div id="wrap">
+        <div id="header">
+            <a id="chooseCityBtn" tapmode>
+            	<img src="./res/drawable-hdpi/conLogo.jpg" class="chooseCityImg">
+            	<!-- <span class="chooseCitySpan">北京</span> -->
+                <span class="chooseCitySpan">泰鼎盛租车</span>
+            </a>
+            <a id="chooseStyleBtn" class="show" tapmode>
+
+            </a>
+        </div>
+        <div id="headerBanner">
+        	<div class="banner frame_name active" onclick="changeIndexMenu(0);">主页</div>
+        	<div class="banner frame_name" onclick="changeIndexMenu(1);">出行</div>
+        	<div class="banner frame_name" onclick="changeIndexMenu(2);">联系我们</div>
+        	<div class="banner_split bs1"> </div>
+        	<div class="banner_split bs2"> </div>
+        </div>
+        <div id="main">
+
+        </div>
+        <div id="footer">
+            <h5>Copyright &copy;2014 </h5>
+        </div>
+    </div>
+</body>
+<script type="text/javascript" src="./script/api.js"></script>
+<script type="text/javascript" src="./script/zepto.js"></script>
+<script type="text/javascript" src="./script/common.js"></script>
+<script type="text/javascript">
+
+    var banner_bar = $api.byId('banner_bar');
+    var aFrameName = $api.domAll('#headerBanner .frame_name');
+    var chooseStyleBtn = $api.byId('chooseStyleBtn');
+    // 上方的导航，原版效果没有实现
+    function changeBanner(num){
+        for(var i = 0,len = aFrameName.length;i < len; i++ ){
+            $api.removeCls(aFrameName[i],'active');
+        }
+        $api.addCls(aFrameName[num],'active');
+    };
+
+	// 首页的framegroup
+    function openIndexFrameGroup(){
+
+        api.setWinAttr({
+            bounces: false
+        });
+        api.openFrameGroup({
+            name: 'index_frameGroup',
+            bounces: false,
+            index: 0,
+            rect: {
+                x: 0,
+                y: headerPos.h+headerBannerPos.h,
+                w: 'auto',
+                h: wH-headerPos.h-headerBannerPos.h
+            },
+            scrollEnabled: true,
+            frames: [
+                {
+                    name: 'index',
+                    url: './html/indexgroup/index.html',
+                    bounces: false,
+                    opaque: true,
+                    bgColor: '#000'
+                },{
+                    name: 'movie',
+                    url: './html/indexgroup/movie.html',
+                    bounces: false,
+                    opaque: true,
+                    bgColor: '#000'
+                },{
+                    name: 'mine',
+                    url: './html/indexgroup/mine.html',
+                    bounces: false,
+                    opaque: true,
+                    bgColor: '#000'
+                }
+            ]
+        },function(ret,err){
+            var index = ret.index;
+            console.log(index+"  aaaa");
+            var name = ret.name;
+            // 两个frame，每个frame有两种图标，这里写得有点绕
+            if (index == 1) {
+                if ($api.getStorage('movieStyle')) {
+                    //console.log($api.getStorage('movieStyle')+"  测试bug");
+                    changeIndexStyleBtn($api.getStorage('movieStyle'));
+                    api.execScript({
+                        frameName: 'movie',
+                        script: 'changeStyle("'+$api.getStorage('movieStyle')+'")'
+                    });
+                } else{
+                    // $api.setStorage('movieStyle','show');
+                    changeIndexStyleBtn('show');
+                }
+            } else {
+                changeIndexStyleBtn();
+                console.log("aaasssa");
+            }
+            changeBanner(index);
+            // 测试欢迎页，打开可测
+            // $api.rmStorage('firstStart');
+        });
+
+    };
+
+    // 改变展示样式按钮
+    function changeBtn(style){
+        switch(style){
+            case 'show': chooseStyleBtn.className = 'list';
+                        $api.attr(chooseStyleBtn,'onclick', 'showStyle("movie","list");');
+                        break;
+            case 'list': chooseStyleBtn.className = 'show';
+                        $api.attr(chooseStyleBtn,'onclick', 'showStyle("movie","show");');
+                        break;
+            default: chooseStyleBtn.className = 'call';
+                    $api.attr(chooseStyleBtn,'onclick', 'phone();');
+        }
+
+    };
+
+
+
+    apiready = function(){
+		console.log("api log test");
+		console.warn("api warning test");
+
+		var chooseCityBtn = $api.byId('chooseCityBtn');
+	    var header = $api.dom('#header');
+        $api.fixStatusBar( header );
+
+        // fixios7bar,这里的header最好是纯色，里面的内容最好不要用top：0；
+	    var headerBanner = $api.byId('headerBanner');
+	    var footer = $api.byId('footer');
+	    window.headerPos = $api.offset(header);
+	    window.headerBannerPos = $api.offset(headerBanner);
+	    window.footerPos = $api.offset(footer);
+	    var main = $api.byId('main');
+	    var mainPos = $api.offset(main);
+
+        window.wW = api.winWidth;
+        window.wH = api.winHeight;
+        var w = parseInt(wW/3);
+        var h = parseInt(wH*4/5);
+
+        // 欢迎页 framegroup
+		var welcome = function(){
+            // 下方小点点的frame
+            // ios 上frame适配有问题，宽度无法适应，不清楚的可以打开试试看
+            // api.openFrame({
+            //     name: 'dot_slider',
+            //     url: './html/welcome/dot_slider.html',
+            //     bounces: false,
+            //     pageParam: {
+            //         w: w
+            //     },
+            //     rect: {
+            //         x: w,
+            //         y: h,
+            //         w: w,
+            //         h: 10
+            //     }
+            // });
+
+            // 欢迎页
+			api.openFrameGroup({
+	            name: 'welcome',
+	            bounces: false,
+	            index: 0,
+	            rect: {
+	            	x: 0,
+	            	y: 0,
+	            	w: 'auto',
+	            	h: 'auto'
+	            },
+	            scrollEnabled: true,
+	            frames: [
+	            	{
+		            	name: 'welcome_1',
+		                url: './html/welcome/welcome_1.html',
+		                bounces: false,
+		                opaque: true,
+		                bgColor: 'widget://res/drawable-xhdpi/welcome_1.jpg'
+		            },{
+		            	name: 'welcome_2',
+		                url: './html/welcome/welcome_1.html',
+		                bounces: false,
+		                opaque: true,
+		                bgColor: 'widget://res/drawable-xhdpi/welcome_2.jpg'
+		            },{
+		            	name: 'welcome_3',
+		                url: './html/welcome/welcome_1.html',
+		                bounces: false,
+		                opaque: true,
+		                bgColor: 'widget://res/drawable-xhdpi/welcome_3.jpg'
+		            },{
+		            	name: 'welcome_4',
+		                url: './html/welcome/welcome_1.html',
+		                bounces: false,
+		                opaque: true,
+		                bgColor: 'widget://res/drawable-xhdpi/welcome_4.jpg',
+		                pageParam: true
+		            }
+	            ]
+            },function(ret,err){
+            	var index = ret.index;
+            	var name = ret.name;
+                if (index == 0) {
+                    $api.setStorage('firstStart',true);
+                }
+                // ios 上frame适配有问题，宽度无法适应
+                // var str = 'changeDot('+index+');';
+                // api.bringFrameToFront({
+                //     from: 'dot_slider'
+                // });
+                // api.execScript({
+				//     frameName: 'dot_slider',
+				//     script: str
+				// });
+            });
+
+
+		};
+
+        // 点击城市，调出选择城市window
+        /*chooseCityBtn.onclick = function(){
+            api.openFrame({
+                name: 'fast_city',
+                url: './html/citylist/fast_city_list.html',
+                rect: {
+                    x: 0,
+                    y: $api.dom( '#header' ).offsetHeight,
+                    w: 'auto',
+                    h: 'auto'
+                },
+                bounces: false
+            });
+        };*/
+
+		indexOrWelcome(welcome());
+
+    };
+</script>
+</html>
